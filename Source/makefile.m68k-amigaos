@@ -1,0 +1,34 @@
+VPATH = base/ sfnt/ smooth/ truetype/ raster/
+CFLAGS = -O2 -g -msmall-code -m68020 -I$(FT2_INCLUDE) -I/usr/include -W -Wall -Wno-parentheses
+CC = m68k-amigaos-gcc
+AS = m68k-amigaos-as
+STRIP = m68k-amigaos-strip
+
+FT2_INCLUDE = ft2_include/
+FTOBJS = ftbase.o sfnt.o smooth.o raster.o truetype.o ftinit.o ftsystem.o ftglyph.o
+TTOBJS = lib_header.o lib.o lib_cache.o lib_blend.o lib_req.o kprintf.o isotables.o getnextchar.o lib_famlist.o
+CRHOBJS = crhook_bgra32.o
+
+lib: lib.db
+	$(STRIP) -o ttengine.library ttengine.library.db
+
+lib.db: $(TTOBJS) $(FTOBJS) $(CRHOBJS)
+	$(CC) -nostartfiles -noixemul -msmall-code -o ttengine.library.db $^
+
+lib.o: lib.c lib.h lib_req.h getnextchar.h
+
+lib_header.o: lib_header.c lib_req.h lib_famlist.h
+
+lib_cache.o: lib_cache.c lib.h
+
+lib_blend.o: lib_blend.c lib.h
+
+lib_req.o: lib_req.c lib_req.h
+
+lib_famlist.o: lib_famlist.c lib_famlist.h
+
+getnextchar.o: getnextchar.c getnextchar.h lib.h
+
+crhook_bgra32.o: crhook_bgra32.c lib.h
+
+

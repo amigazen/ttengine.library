@@ -1,0 +1,49 @@
+
+     Versión 1.0: TTManager.catalog Rev. 07.01.06 / 1.946 octetos
+
+  ---------------------------------------------------------------------
+
+                           >> VERY IMPORTANT <<
+
+    1. Strictly   forbidden   the  package  redistribution  without  my
+       permission written and previous:  theses restrictions affects to
+       all  companies  and  people...   the  only  exceptions  are  the
+       TTManager's  author, the Aminet CD compilations and the Francesc
+       Planas'   Spanish   Scene   CD.    Strictly  forbidden  (without
+       exceptions)  their total/partial modification/update/fix without
+       my permission written and previous.
+
+    TTManager from the TTEngine package
+    -----------------------------------
+    http://teleinfo.pb.bialystok.pl/~krashan/software/tte/
+
+                           >> MUY IMPORTANTE <<
+
+    1. Queda  terminantemente prohibida la distribución por terceros de
+       este  paquete sin mi permiso expreso previo y por escrito.  Sólo
+       el  autor de TTManager, los compactos recopilatorios de Aminet y
+       el compacto dedicado a la escena española de Francesc Planas son
+       las  únicas excepciones a priori en este momento.  Queda también
+       terminantemente  prohibida (y en este caso sin excepciones), sin
+       contar   con  mi  permiso  expreso  previo  y  por  escrito,  su
+       modificación,  actualización,  corrección por parte de cualquier
+       persona física/jurídica.
+
+    TTManager from the TTEngine package
+    -----------------------------------
+    http://teleinfo.pb.bialystok.pl/~krashan/software/tte/
+
+   ---------------------------------------------------------------------
+
+ Los catálogos han sido realizado partiendo de cero y son independientes de
+ cualquier   otra   versión   en   español  presentada  por  otros  grupos,
+ organizaciones  o  individuos.  Para utilizarlos copie los catálogos en el
+ directorio  `PROGDIR:Catalogs/español'  y  reinicie  el  sistema  si ya ha
+ utilizado el programa TTManager en la sesión actual...
+
+ ¡¡Usted asume todos los riesgos del uso de este material!!
+
+                                                          ¡Que lo disfrute!
+                                      Dámaso D. Estévez <amidde@arrakis.es>
+                                 AmiSpaTra - http://www.arrakis.es/~amidde/
+

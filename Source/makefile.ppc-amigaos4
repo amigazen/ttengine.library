@@ -1,0 +1,56 @@
+# If Kickstart isn't defined, we don't run on AmigaOS
+ifndef Kickstart
+
+CROSS_COMPILE = ppc-amigaos-
+RM     = rm -R
+MKDIR  = mkdir -p
+
+else
+
+RM = delete all
+MKDIR = makedir
+endif
+
+# Begin of the makefile
+VPATH = base/ sfnt/ smooth/ truetype/ raster/
+CFLAGS = -O2 -D__USE_INLINE__ -I$(FT2_INCLUDE) -mmultiple
+
+CC     = $(CROSS_COMPILE)gcc
+LD     = $(CROSS_COMPILE)ld
+STRIP  = $(CROSS_COMPILE)strip --remove-section .comment
+LDFLAGS = -nostartfiles
+LIBS = -lm
+
+FT2_INCLUDE = ft2_include/
+FTOBJS = ftbase.o sfnt.o smooth.o raster.o truetype.o ftinit.o ftsystem.o ftglyph.o
+TTOBJS = lib_os4_68kstubs.o lib_header.o lib.o lib_cache.o lib_blend.o lib_req.o isotables.o getnextchar.o lib_famlist.o
+CRHOBJS = crhook_bgra32.o
+
+all: ttengine.library
+
+ttengine.library.db: $(FTOBJS) $(TTOBJS) $(CRHOBJS)
+	$(LD) $(LDFLAGS) $^ $(LIBS) -o $@
+
+ttengine.library: ttengine.library.db
+	$(STRIP) $^ -o $@
+	copy ttengine.library libs:
+	avail >nil: flush
+
+lib.o: lib.c lib.h lib_req.h getnextchar.h
+
+lib_header.o: lib_header.c lib_req.h lib_famlist.h
+
+lib_cache.o: lib_cache.c lib.h
+
+lib_blend.o: lib_blend.c lib.h
+
+lib_req.o: lib_req.c lib_req.h
+
+lib_famlist.o: lib_famlist.c lib_famlist.h
+
+getnextchar.o: getnextchar.c getnextchar.h lib.h
+
+crhook_bgra32.o: crhook_bgra32.c lib.h
+
+clean:
+	-$(RM) $(FTOBJS) $(TTOBJS) $(CRHOBJS) ttengine.library ttengine.library.db

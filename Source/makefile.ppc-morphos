@@ -1,0 +1,38 @@
+VPATH = base/ sfnt/ smooth/ truetype/ raster/
+CFLAGS = -O2 -g -noixemul -fomit-frame-pointer -mno-prototype -mcpu=604e -mmultiple -D__MORPHOS__ -DUSE_INLINE_STDARG -I$(FT2_INCLUDE) -W -Wall -Wno-parentheses
+CC = ppc-morphos-gcc
+LD = ppc-morphos-ld
+LDFLAGS = -v -fl libnix
+LIBS = -L/gg/morphos/lib -labox -lc -lsyscall -ldebug
+STRIP = ppc-morphos-strip --remove-section .comment
+
+FT2_INCLUDE = ft2_include/
+FTOBJS = ftbase.o sfnt.o smooth.o raster.o truetype.o ftinit.o ftsystem.o ftglyph.o
+TTOBJS = lib_header.o lib.o lib_cache.o lib_blend.o lib_req.o isotables.o getnextchar.o lib_famlist.o
+CRHOBJS = crhook_bgra32.o
+
+all: ttengine.library
+
+ttengine.library.db: $(FTOBJS) $(TTOBJS) $(CRHOBJS)
+	$(LD) $(LDFLAGS) $^ $(LIBS) -o $@
+
+ttengine.library: ttengine.library.db
+	$(STRIP) $^ -o $@
+
+lib.o: lib.c lib.h lib_req.h getnextchar.h
+
+lib_header.o: lib_header.c lib_req.h lib_famlist.h
+
+lib_cache.o: lib_cache.c lib.h
+
+lib_blend.o: lib_blend.c lib.h
+
+lib_req.o: lib_req.c lib_req.h
+
+lib_famlist.o: lib_famlist.c lib_famlist.h
+
+getnextchar.o: getnextchar.c getnextchar.h lib.h
+
+crhook_bgra32.o: crhook_bgra32.c lib.h
+
+
