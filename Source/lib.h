@@ -1,4 +1,4 @@
-/* $VER: lib.h 7.2 (12.1.2005) */
+/* $VER: lib.h 7.3 (14.7.2026) */
 
 #ifndef TTE_LIB_H
 #define TTE_LIB_H

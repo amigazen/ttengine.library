@@ -5,10 +5,10 @@
 #define __NOLIBBASE__
 
 #define VERSION         7
-#define REVISION        2
+#define REVISION        3
 
-#define COMPDATE        "22.12.2005"
-#define VERS            "7.2"
+#define COMPDATE        "14.7.2026"
+#define VERS            "7.3"
 
 #include <proto/exec.h>
 #include <exec/resident.h>

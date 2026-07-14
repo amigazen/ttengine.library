@@ -4,6 +4,17 @@ All notable changes to ttengine.library are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [7.3] - 2026-07-14
+
+- Added SAS/C build (`Source/smakefile`, `SCOPTIONS`) for AmigaOS 3.x / 68020.
+- Added FT_AMIGA_SASC / FreeType error-prefix glue for SAS/C
+- Fixed ftsystem CreatePool/DeletePool and swap helpers for SAS/C
+- Fixed Expunge FreeMem pointer arithmetic under SAS/C
+- Removed GCC-only reg()/__saveds usage from public entry points
+- Added CLI `TTEngineTest` harness under `Source/test`.
+- Fixed FreeType module error enums and Amiga glue for SAS/C.
+- Fixed libcall conventions (`__ASM__` / `__SAVE_DS__` / `__REG__`) for SAS/C to use compiler-specific.h macros.
+
 ## [7.2] - 2005-12-22
 
 - Final version of direct rendering callback for BGRA32 screenmode.

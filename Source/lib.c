@@ -1,4 +1,4 @@
-/* $VER: lib.c 7.2 (8.4.2005) by Grzegorz Kraszewski */
+/* $VER: lib.c 7.3 (14.7.2026) by Grzegorz Kraszewski */
 
 /// preliminary AutoDocs
 /****** ttengine.library/background *****************************************

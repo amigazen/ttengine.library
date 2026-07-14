@@ -1,9 +1,9 @@
-short:         TrueType text rendering engine (v 7.2)
-uploader:      krashan@teleinfo.pb.bialystok.pl
-author:        krashan@teleinfo.pb.bialystok.pl
+short:         TrueType text rendering engine (v 7.3)
+uploader:      toolkit@amigazen.com
+author:        toolkit@amigazen.com
 type:          util/libs
 architecture:  m68k-amigaos >= 3.0; ppc-morphos >= 1.3;
-version:       7.2 (22.12.2005)
+version:       7.3 (14.7.2026)
 
 
 The library is fast, AmigaOS friendly TrueType render engine. It has
@@ -22,6 +22,12 @@ See http://amiga.pl/ttengine for news, downloads, online autodoc and
 programming tutorial.
  
 CHANGES (last three versions)
+
+v 7.3 (14.7.2026)
+   - Added SAS/C build for AmigaOS 3.x / 68020.
+   - Added CLI TTEngineTest harness.
+   - Fixed FreeType error enums and libcall glue for SAS/C.
+
 
 v 7.2 (22.12.2005)
    - Final version of direct rendering callback for BGRA32 screenmode.

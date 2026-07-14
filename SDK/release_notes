@@ -326,4 +326,10 @@ v 7.2 (22.12.2005)
    - Added handling of fonts with MS Symbol names encoding (Marlett).
    - Fixed possible hits in the database parser.
 
+v 7.3 (14.7.2026)
+
+   - Added SAS/C build for AmigaOS 3.x / 68020.
+   - Added CLI TTEngineTest harness.
+   - Fixed FreeType error enums and libcall glue for SAS/C.
+
 

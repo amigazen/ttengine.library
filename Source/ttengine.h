@@ -1,7 +1,7 @@
 #ifndef LIBRARIES_TTENGINE_H
 #define LIBRARIES_TTENGINE_H
 
-/* $VER: ttengine.h 7.2 (5.4.2005) (c) by Grzegorz Kraszewski 2002 - 2005. */
+/* $VER: ttengine.h 7.3 (14.7.2026) (c) by Grzegorz Kraszewski 2002 - 2005. */
 
 #define TTENGINENAME "ttengine.library"
 #define TTENGINEVERSION 7
