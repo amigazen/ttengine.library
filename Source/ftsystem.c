@@ -392,8 +392,9 @@ void FreeVecPooled(APTR poolHeader, APTR memory)
     memory = (FT_Memory)AllocVec( sizeof ( *memory ), MEMF_PUBLIC );
     if ( memory )
     {
-//    memory->user    = 0;
-#ifdef __GNUC__
+/* CreatePool is available on AmigaOS 3+/SAS/C; AsmCreatePool was a
+       GCC helper when exec stubs were unavailable. */
+#if defined(__GNUC__) || defined(__SASC) || defined(__MORPHOS__) || defined(__amigaos4__)
       memory->user    = CreatePool ( MEMF_PUBLIC, 2048, 2048 );
 #else
       memory->user    = AsmCreatePool ( MEMF_PUBLIC, 2048, 2048, SysBase );
@@ -428,7 +429,7 @@ void FreeVecPooled(APTR poolHeader, APTR memory)
     ft_mem_debug_done( memory );
 #endif  
 
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__SASC) || defined(__MORPHOS__) || defined(__amigaos4__)
     DeletePool( memory->user );
 #else
     AsmDeletePool( memory->user, SysBase );

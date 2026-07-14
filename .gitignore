@@ -1,0 +1,6 @@
+*.o
+output.txt
+*.uaem
+*.map
+Source/test/TTEngineTest
+Source/test/TTEngineTest.map

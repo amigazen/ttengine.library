@@ -235,7 +235,7 @@ ULONG sizestring_edithook(void)
 
 #else
 
-__saveds ULONG sizestring_edithook (struct SGWork *sgw reg(a2), ULONG *msg reg(a1))
+__ASM__ __SAVE_DS__ ULONG sizestring_edithook (__REG__(a2, struct SGWork *sgw), __REG__(a1, ULONG *msg))
 {
 
 #endif
@@ -830,7 +830,8 @@ struct TTRequest *tt_AllocRequest(void)
 
 #else
 
-struct TTRequest *tt_AllocRequest(struct TTEngineBase *ttb reg(a6))
+__ASM__ __SAVE_DS__ struct TTRequest *tt_AllocRequest(
+	__REG__(a6, struct TTEngineBase *ttb))
 {
 
 #endif
@@ -918,8 +919,10 @@ struct TagItem *tt_RequestA(void)
 
 #else
 
-struct TagItem *tt_RequestA(struct TTEngineBase *ttb reg(a6), struct TTRequest *request
- reg(a0), struct TagItem *taglist reg(a1))
+__ASM__ __SAVE_DS__ struct TagItem *tt_RequestA(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, struct TTRequest *request),
+	__REG__(a1, struct TagItem *taglist))
 {
 
 #endif
@@ -1232,7 +1235,9 @@ void tt_FreeRequest(void)
 
 #else
 
-void tt_FreeRequest(struct TTEngineBase *ttb reg(a6), struct TTRequest *ttrq reg(a0))
+__ASM__ __SAVE_DS__ void tt_FreeRequest(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, struct TTRequest *ttrq))
 {
 
 #endif

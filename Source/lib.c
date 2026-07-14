@@ -273,7 +273,11 @@ static BOOL expand_pixmap(struct TTEngineBase *ttb, struct RenderEnv *re, ULONG 
 // antialias_off()
 //==========================================================================================================================================================
 
+#ifdef __SASC
+__inline void antialias_off(struct RenderEnv *re)
+#else
 inline void antialias_off(struct RenderEnv *re)
+#endif
 {
 	re->re_RenderMode = ft_render_mode_mono;
 	re->re_BitmapMode = ft_pixel_mode_mono;
@@ -283,7 +287,11 @@ inline void antialias_off(struct RenderEnv *re)
 // antialias_on()
 //==========================================================================================================================================================
 
+#ifdef __SASC
+__inline void antialias_on(struct RenderEnv *re)
+#else
 inline void antialias_on(struct RenderEnv *re)
+#endif
 {
 	re->re_RenderMode = 0;
 	re->re_BitmapMode = ft_pixel_mode_grays;
@@ -654,7 +662,7 @@ ULONG render_hook(void)
 
 #else
 
-__saveds ULONG render_hook(struct Hook *h reg(a0), struct RastPort *rp reg(a2), struct CRHookMsg *msg reg(a1))
+__ASM__ __SAVE_DS__ ULONG render_hook(__REG__(a0, struct Hook *h), __REG__(a2, struct RastPort *rp), __REG__(a1, struct CRHookMsg *msg))
 {
 
 #endif
@@ -886,29 +894,29 @@ struct LangTbl
 struct LangTbl MSLangTable[] = {
 	{"english", TT_MS_LANGID_ENGLISH_UNITED_STATES & MS_SUBLANG_MASK},
 	{"polski", TT_MS_LANGID_POLISH_POLAND & MS_SUBLANG_MASK},
-	{"català", TT_MS_LANGID_CATALAN_SPAIN & MS_SUBLANG_MASK},
+	{"catal?", TT_MS_LANGID_CATALAN_SPAIN & MS_SUBLANG_MASK},
 	{"hrvatski", TT_MS_LANGID_CROATIAN_CROATIA & MS_SUBLANG_MASK},
 	{"czech", TT_MS_LANGID_CZECH_CZECH_REPUBLIC & MS_SUBLANG_MASK},
 	{"dansk", TT_MS_LANGID_DANISH_DENMARK & MS_SUBLANG_MASK},
 	{"nederlands", TT_MS_LANGID_DUTCH_NETHERLANDS & MS_SUBLANG_MASK},
 	{"suomi", TT_MS_LANGID_FINNISH_FINLAND & MS_SUBLANG_MASK},
-	{"français", TT_MS_LANGID_FRENCH_FRANCE & MS_SUBLANG_MASK},
+	{"fran?ais", TT_MS_LANGID_FRENCH_FRANCE & MS_SUBLANG_MASK},
 	{"deutsch", TT_MS_LANGID_GERMAN_GERMANY & MS_SUBLANG_MASK},
 	{"magyar", TT_MS_LANGID_HUNGARIAN_HUNGARY & MS_SUBLANG_MASK},
-	{"íslenska", TT_MS_LANGID_ICELANDIC_ICELAND & MS_SUBLANG_MASK},
+	{"?slenska", TT_MS_LANGID_ICELANDIC_ICELAND & MS_SUBLANG_MASK},
 	{"italiano", TT_MS_LANGID_ITALIAN_ITALY & MS_SUBLANG_MASK},
 	{"nihongo", TT_MS_LANGID_JAPANESE_JAPAN & MS_SUBLANG_MASK},
 	{"norsk", TT_MS_LANGID_NORWEGIAN_NORWAY_BOKMAL & MS_SUBLANG_MASK},
 	{"farsi", TT_MS_LANGID_FARSI_IRAN & MS_SUBLANG_MASK},
-	{"portuguæs", TT_MS_LANGID_PORTUGUESE_PORTUGAL & MS_SUBLANG_MASK},
-	{"portuguæs-brasil", TT_MS_LANGID_PORTUGUESE_BRAZIL & MS_SUBLANG_MASK},
+	{"portugu?s", TT_MS_LANGID_PORTUGUESE_PORTUGAL & MS_SUBLANG_MASK},
+	{"portugu?s-brasil", TT_MS_LANGID_PORTUGUESE_BRAZIL & MS_SUBLANG_MASK},
 	{"russian", TT_MS_LANGID_RUSSIAN_RUSSIA & MS_SUBLANG_MASK},
 	{"srpski", TT_MS_LANGID_SERBIAN_SERBIA_LATIN & MS_SUBLANG_MASK},
 	{"slovak", TT_MS_LANGID_SLOVAK_SLOVAKIA & MS_SUBLANG_MASK},
 	{"slovensko", TT_MS_LANGID_SLOVENE_SLOVENIA & MS_SUBLANG_MASK},
-	{"español", TT_MS_LANGID_SPANISH_SPAIN_TRADITIONAL_SORT & MS_SUBLANG_MASK},
+	{"espa?ol", TT_MS_LANGID_SPANISH_SPAIN_TRADITIONAL_SORT & MS_SUBLANG_MASK},
 	{"svenska", TT_MS_LANGID_SWEDISH_SWEDEN & MS_SUBLANG_MASK},
-	{"türkçe", TT_MS_LANGID_TURKISH_TURKEY & MS_SUBLANG_MASK},
+	{"t?rk?e", TT_MS_LANGID_TURKISH_TURKEY & MS_SUBLANG_MASK},
 	{"greek", TT_MS_LANGID_GREEK_GREECE & MS_SUBLANG_MASK},
 	{"hellenic", TT_MS_LANGID_GREEK_GREECE & MS_SUBLANG_MASK},
 	{NULL, 0}
@@ -1633,7 +1641,7 @@ struct TTEngineBase *LibOpen(void)
 
 #else
 
-__saveds struct TTEngineBase *LibOpen (struct TTEngineBase *ttb reg(a6))
+__ASM__ __SAVE_DS__ struct TTEngineBase *LibOpen (__REG__(a6, struct TTEngineBase *ttb))
 {
 
 #endif
@@ -1669,7 +1677,7 @@ LONG LibClose(void)
 
 #else
 
-__saveds long LibClose(struct TTEngineBase *ttb reg(a6))
+__ASM__ __SAVE_DS__ long LibClose(__REG__(a6, struct TTEngineBase *ttb))
   {
 
 #endif
@@ -1710,7 +1718,7 @@ APTR MyLibExpunge(struct TTEngineBase *ttb)
 
 #else
 
-__saveds APTR LibExpunge (struct TTEngineBase *ttb reg(a6))
+__ASM__ __SAVE_DS__ APTR LibExpunge (__REG__(a6, struct TTEngineBase *ttb))
 
 #endif
 
@@ -1736,8 +1744,9 @@ __saveds APTR LibExpunge (struct TTEngineBase *ttb reg(a6))
   Remove((struct Node*)ttb);
   Permit();
   free_resources(ttb);
-  FreeMem((APTR)ttb - ttb->ttb_Lib.lib_NegSize, (LONG)ttb->ttb_Lib.lib_PosSize +
-    (LONG)ttb->ttb_Lib.lib_NegSize);
+  /* SAS/C: APTR is void *; use BYTE* for address arithmetic. */
+  FreeMem((APTR)((BYTE *)ttb - ttb->ttb_Lib.lib_NegSize),
+    (LONG)ttb->ttb_Lib.lib_PosSize + (LONG)ttb->ttb_Lib.lib_NegSize);
   #endif
 
   LD(kp("library expunged."));
@@ -1753,10 +1762,10 @@ __saveds APTR LibExpunge (struct TTEngineBase *ttb reg(a6))
 
 #ifndef __amigaos4__
 
-long LibReserved (void)
-  {
-    return 0;
-  }
+__ASM__ long LibReserved(void)
+{
+	return 0;
+}
 
 #endif
 
@@ -1925,7 +1934,7 @@ APTR tt_OpenFontA(void)
 
 #else
 
-__saveds APTR tt_OpenFontA(struct TTEngineBase *ttb reg(a6), struct TagItem *taglist reg(a0))
+__ASM__ __SAVE_DS__ APTR tt_OpenFontA(__REG__(a6, struct TTEngineBase *ttb), __REG__(a0, struct TagItem *taglist))
 {
 
 #endif
@@ -2164,7 +2173,7 @@ __saveds APTR tt_OpenFontA(struct TTEngineBase *ttb reg(a6), struct TagItem *tag
                                                         extent_loop(ttb, &lre, "MGA", 3);
                                                         lf->lf_RealAscender = -lre.re_TextExtent.te_Extent.MinY;
 
-                                                        extent_loop(ttb, &lre, "ÓÊ", 2);
+                                                        extent_loop(ttb, &lre, "??", 2);
                                                         lf->lf_AccentedAscender = -lre.re_TextExtent.te_Extent.MinY;
 
                                                         extent_loop(ttb, &lre, "gpyj_", 5);
@@ -2248,7 +2257,7 @@ void tt_CloseFont(void)
 
 #else
 
-__saveds void tt_CloseFont(struct TTEngineBase *ttb reg(a6), APTR lf reg(a0))
+__ASM__ __SAVE_DS__ void tt_CloseFont(__REG__(a6, struct TTEngineBase *ttb),__REG__(a0, APTR lf))
 {
 
 #endif
@@ -2362,8 +2371,7 @@ BOOL tt_SetFont(void)
 
 #else
 
-__saveds BOOL tt_SetFont(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1),
-  APTR lf1 reg(a0))
+__ASM__ __SAVE_DS__ BOOL tt_SetFont(__REG__(a6, struct TTEngineBase *ttb), __REG__(a1, struct RastPort *rp),__REG__(a0, APTR lf1))
 {
 
 #endif
@@ -2493,8 +2501,7 @@ void tt_Text(void)
 
 #else
 
-__saveds void tt_Text(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), APTR str reg(a0),
-  ULONG count reg(d0))
+__ASM__ __SAVE_DS__ void tt_Text(__REG__(a6, struct TTEngineBase *ttb), __REG__(a1, struct RastPort *rp),__REG__(a0, APTR str),__REG__(d0, ULONG count))
 {
 
 #endif
@@ -2684,7 +2691,7 @@ ULONG tt_SetAttrsA(void)
 
 #else
 
-__saveds ULONG tt_SetAttrsA(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), struct TagItem *taglist reg(a0))
+__ASM__ __SAVE_DS__ ULONG tt_SetAttrsA(__REG__(a6, struct TTEngineBase *ttb), __REG__(a1, struct RastPort *rp), __REG__(a0, struct TagItem *taglist))
 {
 
 #endif
@@ -2941,7 +2948,7 @@ ULONG tt_GetAttrsA(void)
 
 #else
 
-__saveds ULONG tt_GetAttrsA(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), struct TagItem *taglist reg(a0))
+__ASM__ __SAVE_DS__ ULONG tt_GetAttrsA(__REG__(a6, struct TTEngineBase *ttb), __REG__(a1, struct RastPort *rp), __REG__(a0, struct TagItem *taglist))
 {
 
 #endif
@@ -3154,7 +3161,7 @@ ULONG tt_TextLength(void)
 
 #else
 
-__saveds ULONG tt_TextLength(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), APTR string reg(a0), ULONG count reg(d0))
+__ASM__ __SAVE_DS__ ULONG tt_TextLength(__REG__(a6, struct TTEngineBase *ttb), __REG__(a1, struct RastPort *rp),__REG__(a0, APTR string),__REG__(d0, ULONG count))
 {
 
 #endif
@@ -3258,8 +3265,8 @@ void tt_TextExtent(void)
 
 #else
 
-__saveds VOID tt_TextExtent(struct TTEngineBase *ttb reg(a6), struct RastPort* rp reg(a1), APTR string reg(a0), WORD count reg(d0),
-	struct TextExtent *te reg(a2))
+__ASM__ __SAVE_DS__ VOID tt_TextExtent(__REG__(a6, struct TTEngineBase *ttb),__REG__(a1, struct RastPort* rp),__REG__(a0, APTR string),__REG__(d0, WORD count),
+	__REG__(a2, struct TextExtent *te))
 {
 
 #endif
@@ -3403,8 +3410,8 @@ ULONG tt_TextFit(void)
 
 #else
 
-__saveds ULONG tt_TextFit(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), APTR string reg(a0), UWORD count reg(d0),
-	struct TextExtent *te reg(a2), struct TextExtent *cte reg(a3), WORD dir reg(d1), UWORD width reg(d2), UWORD height reg(d3))
+__ASM__ __SAVE_DS__ ULONG tt_TextFit(__REG__(a6, struct TTEngineBase *ttb), __REG__(a1, struct RastPort *rp),__REG__(a0, APTR string),__REG__(d0, UWORD count),
+	__REG__(a2, struct TextExtent *te), __REG__(a3, struct TextExtent *cte),__REG__(d1, WORD dir),__REG__(d2, UWORD width),__REG__(d3, UWORD height))
 {
 
 #endif
@@ -3432,7 +3439,7 @@ __saveds ULONG tt_TextFit(struct TTEngineBase *ttb reg(a6), struct RastPort *rp 
 	te->te_Extent.MinY = 0;
 	te->te_Extent.MaxY = 0;
 
-	/* Maybe the whole string fits into constraining box? Return immediately in the case. */
+	/*?Maybe the whole string fits into constraining box? Return immediately in the case. */
 
 	extent_loop(ttb, re, string, count);
   
@@ -3640,8 +3647,12 @@ struct TT_Pixmap *tt_GetPixmapA(void)
 
 #else
 
-struct TT_Pixmap *tt_GetPixmapA(struct TTEngineBase *ttb reg(a6), APTR font reg(a1), APTR string reg(a2), ULONG count reg(d0),
-	struct TagItem *taglist reg(a0))
+__ASM__ __SAVE_DS__ struct TT_Pixmap *tt_GetPixmapA(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, APTR font),
+	__REG__(a2, APTR string),
+	__REG__(d0, ULONG count),
+	__REG__(a0, struct TagItem *taglist))
 {
 
 #endif
@@ -3780,7 +3791,9 @@ void tt_FreePixmap(VOID)
 
 #else
 
-void tt_FreePixmap(struct TTEngineBase *ttb reg(a6), struct TT_Pixmap *pixmap reg(a0))
+__ASM__ __SAVE_DS__ void tt_FreePixmap(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, struct TT_Pixmap *pixmap))
 {
 
 #endif
@@ -3871,7 +3884,9 @@ void tt_DoneRastPort(void)
 
 #else
 
-void tt_DoneRastPort(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1))
+__ASM__ __SAVE_DS__ void tt_DoneRastPort(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, struct RastPort *rp))
 {
 
 #endif

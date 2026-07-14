@@ -144,7 +144,13 @@
 
 #define FT_ERRORDEF( e, v, s )  e = v,
 #define FT_ERROR_START_LIST     enum {
+  /* SAS/C will not expand FT_ERR_PREFIX before ##; bake FT_Err_ in
+     (module prefixes are generated in *errors.h, not here). */
+#ifdef __SASC
+#define FT_ERROR_END_LIST       FT_Err_Max };
+#else
 #define FT_ERROR_END_LIST       FT_ERR_CAT( FT_ERR_PREFIX, Max ) };
+#endif
 
 #ifdef __cplusplus
 #define FT_NEED_EXTERN_C
@@ -155,12 +161,19 @@
 
 
   /* this macro is used to define an error */
+#ifdef __SASC
+#define FT_ERRORDEF_( e, v, s )   \
+          FT_ERRORDEF( FT_Err_##e, v + FT_ERR_BASE, s )
+#define FT_NOERRORDEF_( e, v, s ) \
+          FT_ERRORDEF( FT_Err_##e, v, s )
+#else
 #define FT_ERRORDEF_( e, v, s )   \
           FT_ERRORDEF( FT_ERR_CAT( FT_ERR_PREFIX, e ), v + FT_ERR_BASE, s )
 
   /* this is only used for FT_Err_Ok, which must be 0! */
 #define FT_NOERRORDEF_( e, v, s ) \
           FT_ERRORDEF( FT_ERR_CAT( FT_ERR_PREFIX, e ), v, s )
+#endif
 
 
 #ifdef FT_ERROR_START_LIST

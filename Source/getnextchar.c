@@ -2,16 +2,16 @@
 #include "ttengine.h"
 #include "getnextchar.h"
 
-#if defined(__MORPHOS__) || defined(__amigaos4__)
+#if defined(__MORPHOS__) || defined(__amigaos4__) || defined(__SASC)
 
-/* endian conversion macros for PPC */
+/* portable endian conversion (PPC, and SAS/C on 68k) */
 
 #define swapw(x) ((x >> 8) | ((x & 0xFF) << 8))
 #define swapl(x) ((x >> 24) | ((x & 0xFF0000) >> 8) | ((x & 0xFF00) << 8) | ((x & 0xFF) << 24))
 
 #else
 
-/* endian conversion macros for 68k */
+/* GCC endian conversion macros for 68k (inline asm) */
 
 /* swap word */
 
@@ -35,7 +35,7 @@
     :"cc");\
     __arg;})
 
-#endif /* #ifdef __MORPHOS__ */
+#endif
 
 extern UWORD ISO8859_2_Table[128];
 extern UWORD ISO8859_3_Table[128];

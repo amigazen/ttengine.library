@@ -17,7 +17,11 @@ void tt_FreeFamilyList(void);
 
 #else
 
-STRPTR *tt_ObtainFamilyListA(struct TTEngineBase *ttb reg(a6), struct TagItem *taglist reg(a0));
-void tt_FreeFamilyList(struct TTEngineBase *ttb reg(a6), STRPTR *list reg(a0));
+__ASM__ __SAVE_DS__ STRPTR *tt_ObtainFamilyListA(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, struct TagItem *taglist));
+__ASM__ __SAVE_DS__ void tt_FreeFamilyList(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, STRPTR *list));
 
 #endif

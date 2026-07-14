@@ -1,0 +1,54 @@
+#
+# :ts=8
+#
+# TTEngineTest - CLI unit test binary for ttengine.library
+#
+
+NAME = TTEngineTest
+
+###############################################################################
+
+OPTIMIZE = optimize opttime
+DEBUG = symbolflush noopt
+
+###############################################################################
+
+CFLAGS = resopt idlen=64 comnest streq strmerge nostkchk \
+	includedir=//SDK/Include_H includedir=include: \
+	$(OPTIMIZE) debug=$(DEBUG) \
+	params=register strsect=code mccons \
+	unsignedchars nomultipleincludes structureequivalence \
+	optimizescheduler noversion noicons \
+	stringsconst CODE=FAR DATA=FAR
+LFLAGS = addsym noicons batch stripdebug
+
+###############################################################################
+
+OBJS = ttenginetest.o
+
+LIBS = sc:lib/sc.lib sc:lib/scm.lib lib:small.lib lib:debug.lib
+
+###############################################################################
+
+all: $(NAME)
+
+$(NAME): $(OBJS)
+	slink sc:lib/c.o $(OBJS) to $@ lib $(LIBS) $(LFLAGS) \
+		map $@.map,fhx fwidth 32 pwidth 32 swidth 32
+
+###############################################################################
+
+clean:
+	delete $(NAME) $(NAME).map $(OBJS)
+
+###############################################################################
+
+test: $(NAME)
+	$(NAME)
+
+###############################################################################
+
+ttenginetest.o: ttenginetest.c
+	Sc $(CFLAGS) OBJNAME $@ $<
+
+.PHONY: all clean test

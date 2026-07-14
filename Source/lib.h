@@ -11,6 +11,7 @@
 #include <exec/libraries.h>
 #include <exec/semaphores.h>
 #include <dos/dos.h>
+#include <clib/compiler-specific.h>
 
 #ifdef __MORPHOS__
 #include <clib/debug_protos.h>
@@ -21,8 +22,6 @@
 #endif
 
 #include "ttengine.h"
-
-#define reg(x) __asm(#x)
 
 #ifndef __amigaos4__
 #define USELIB(b, i, s) struct Library * b = ttb->ttb_##b
@@ -43,6 +42,10 @@ extern struct Library *SysBase;
 #endif
 
 /* === DEBUG STUFF === */
+
+#ifndef __FUNCTION__
+#define __FUNCTION__ ""
+#endif
 
 #define LD(x)
 #define kp(a) kprintf("TTEngine: [" __FILE__ "/%ld] " __FUNCTION__ "() " a "\n", __LINE__)
@@ -378,24 +381,73 @@ void tt_DoneRastPort(void);
 
 #else
 
-struct TTEngineBase *LibInit(void *seglist reg(a0), struct Library *sysb reg(a6));
-struct TTEngineBase *LibOpen(struct TTEngineBase *ttb reg(a6));
-LONG LibClose(struct TTEngineBase *ttb reg(a6));
-APTR LibExpunge(struct TTEngineBase *ttb reg(a6));
-LONG LibReserved(void);
+__ASM__ __SAVE_DS__ struct TTEngineBase *LibInit(
+	__REG__(a0, APTR seglist),
+	__REG__(a6, struct Library *sysb));
+__ASM__ __SAVE_DS__ struct TTEngineBase *LibOpen(
+	__REG__(a6, struct TTEngineBase *ttb));
+__ASM__ __SAVE_DS__ LONG LibClose(
+	__REG__(a6, struct TTEngineBase *ttb));
+__ASM__ __SAVE_DS__ APTR LibExpunge(
+	__REG__(a6, struct TTEngineBase *ttb));
+__ASM__ LONG LibReserved(void);
 
-APTR tt_OpenFontA(struct TTEngineBase *ttb reg(a6), struct TagItem *taglist reg(a0));
-BOOL tt_SetFont(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), APTR font reg(a0));
-void tt_CloseFont(struct TTEngineBase *ttb reg(a6), APTR font reg(a0));
-void tt_Text(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), APTR string reg(a0), ULONG count reg(d0));
-ULONG tt_SetAttrsA(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), struct TagItem *taglist reg(a0));
-ULONG tt_GetAttrsA(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), struct TagItem *taglist reg(a0));
-ULONG tt_TextLength(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), APTR string reg(a0), ULONG count reg(d0));
-void tt_TextExtent(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), APTR string reg(a0), WORD count reg(d0), struct TextExtent *te reg(a2));
-ULONG tt_TextFit(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1), APTR string reg(a0), UWORD count reg(d0), struct TextExtent *te reg(a2), struct TextExtent *tec reg(a3), WORD dir reg(d1), UWORD cwidth reg(d2), UWORD cheight reg(d3));
-struct TT_Pixmap *tt_GetPixmapA(struct TTEngineBase *ttb reg(a6), APTR font reg(a1), APTR string reg(a2), ULONG count reg(d0), struct TagItem *taglist reg(a0));
-void tt_FreePixmap(struct TTEngineBase *ttb reg(a6), struct TT_Pixmap *pixmap reg(a0));
-void tt_DoneRastPort(struct TTEngineBase *ttb reg(a6), struct RastPort *rp reg(a1));
+__ASM__ __SAVE_DS__ APTR tt_OpenFontA(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, struct TagItem *taglist));
+__ASM__ __SAVE_DS__ BOOL tt_SetFont(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, struct RastPort *rp),
+	__REG__(a0, APTR font));
+__ASM__ __SAVE_DS__ void tt_CloseFont(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, APTR font));
+__ASM__ __SAVE_DS__ void tt_Text(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, struct RastPort *rp),
+	__REG__(a0, APTR string),
+	__REG__(d0, ULONG count));
+__ASM__ __SAVE_DS__ ULONG tt_SetAttrsA(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, struct RastPort *rp),
+	__REG__(a0, struct TagItem *taglist));
+__ASM__ __SAVE_DS__ ULONG tt_GetAttrsA(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, struct RastPort *rp),
+	__REG__(a0, struct TagItem *taglist));
+__ASM__ __SAVE_DS__ ULONG tt_TextLength(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, struct RastPort *rp),
+	__REG__(a0, APTR string),
+	__REG__(d0, ULONG count));
+__ASM__ __SAVE_DS__ void tt_TextExtent(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, struct RastPort *rp),
+	__REG__(a0, APTR string),
+	__REG__(d0, WORD count),
+	__REG__(a2, struct TextExtent *te));
+__ASM__ __SAVE_DS__ ULONG tt_TextFit(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, struct RastPort *rp),
+	__REG__(a0, APTR string),
+	__REG__(d0, UWORD count),
+	__REG__(a2, struct TextExtent *te),
+	__REG__(a3, struct TextExtent *tec),
+	__REG__(d1, WORD dir),
+	__REG__(d2, UWORD cwidth),
+	__REG__(d3, UWORD cheight));
+__ASM__ __SAVE_DS__ struct TT_Pixmap *tt_GetPixmapA(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, APTR font),
+	__REG__(a2, APTR string),
+	__REG__(d0, ULONG count),
+	__REG__(a0, struct TagItem *taglist));
+__ASM__ __SAVE_DS__ void tt_FreePixmap(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, struct TT_Pixmap *pixmap));
+__ASM__ __SAVE_DS__ void tt_DoneRastPort(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a1, struct RastPort *rp));
 
 #endif /* #ifdef __MORPHOS__ */
 

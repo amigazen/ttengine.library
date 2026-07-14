@@ -45,8 +45,14 @@ struct TagItem *tt_RequestA(void);
 
 #else
 
-struct TTRequest *tt_AllocRequest(struct TTEngineBase *ttb reg(a6));
-void tt_FreeRequest(struct TTEngineBase *ttb reg(a6), struct TTRequest *ttreq reg(a0));
-struct TagItem *tt_RequestA(struct TTEngineBase *ttb reg(a6), struct TTRequest *ttreq reg(a0), struct TagItem *taglist reg(a1));
+__ASM__ __SAVE_DS__ struct TTRequest *tt_AllocRequest(
+	__REG__(a6, struct TTEngineBase *ttb));
+__ASM__ __SAVE_DS__ void tt_FreeRequest(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, struct TTRequest *ttreq));
+__ASM__ __SAVE_DS__ struct TagItem *tt_RequestA(
+	__REG__(a6, struct TTEngineBase *ttb),
+	__REG__(a0, struct TTRequest *ttreq),
+	__REG__(a1, struct TagItem *taglist));
 
 #endif

@@ -47,7 +47,7 @@ struct TTEngineBase *LibInit(struct Library *unused, APTR seglist, struct Librar
 
 #else
 
-__saveds struct TTEngineBase *LibInit (APTR seglist reg(a0), struct Library *sysb reg(a6));
+__ASM__ __SAVE_DS__ struct TTEngineBase *LibInit (__REG__(a0, APTR seglist), __REG__(a6, struct Library *sysb));
 
 #endif
 
@@ -298,8 +298,8 @@ struct TTEngineBase *LibInit(struct Library *unused, APTR seglist, struct Librar
 
 #else
 
-__saveds struct TTEngineBase *LibInit (APTR seglist reg(a0),
- struct Library *sysb reg(a6))
+__ASM__ __SAVE_DS__ struct TTEngineBase *LibInit (__REG__(a0, APTR seglist),
+ __REG__(a6, struct Library *sysb))
 {
   struct TTEngineBase *ttb, *rval = NULL;
   struct Library *SysBase = sysb;

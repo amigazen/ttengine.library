@@ -1,0 +1,162 @@
+#
+# SAS/C smakefile for ttengine.library (AmigaOS 3.x / 68020)
+#
+###############################################################################
+
+NAME = ttengine.library
+
+###############################################################################
+
+# Speed first: opttime on all units (ttengine + FreeType).
+# Do NOT put noopt on the Sc line — it cancels optimize entirely.
+OPTIMIZE = optimize opttime
+
+# Optional CodeProbe symbols (does not disable the optimizer):
+#DEBUG = debug=symbolflush
+
+CPU = 68020
+
+###############################################################################
+
+# Shared compiler flags. FreeType headers live in ft2_include/.
+# Include path notes:
+#   include/              - local (compiler-specific.h; optional CyberGraphX)
+#   /SDK/Include_h        - NDK (expects proto/cybergraphics.h,
+#                           cybergraphx/cybergraphics.h)
+#   include:              - assign / standard Amiga includes
+# With optimize, SAS/C also runs optglobal + optpeep (+ optscheduler).
+CFLAGS = resopt idlen=64 comnest streq strmerge nostkchk \
+	includedir=ft2_include includedir=include includedir=/SDK/Include_h \
+	includedir=SDK:Include_h includedir=include: \
+	$(OPTIMIZE) $(DEBUG) cpu=$(CPU) \
+	params=register strsect=code mccons smallcode smalldata \
+	unsignedchars structureequivalence \
+	optimizescheduler noversion noicons memorysize=huge \
+	stringsconst nostartup define=FT_AMIGA_SASC \
+	ignore=42 ignore=62 ignore=79 ignore=85 ignore=88 ignore=89 ignore=93 \
+	ignore=100 ignore=104 ignore=105 ignore=110 ignore=225
+
+# FreeType re-includes fterrdef.h once per module error prefix — do not
+# use nomultipleincludes (it would skip later includes).
+FTCFLAGS = resopt idlen=64 comnest streq strmerge nostkchk \
+	includedir=/ft2_include includedir=/include includedir=/SDK/Include_h \
+	includedir=SDK:Include_h includedir=include: \
+	$(OPTIMIZE) $(DEBUG) cpu=$(CPU) \
+	params=register strsect=code mccons smallcode smalldata \
+	unsignedchars structureequivalence \
+	optimizescheduler noversion noicons memorysize=huge \
+	stringsconst nostartup define=FT_AMIGA_SASC \
+	ignore=42 ignore=62 ignore=79 ignore=85 ignore=88 ignore=89 ignore=93 \
+	ignore=100 ignore=104 ignore=105 ignore=110 ignore=225
+
+LFLAGS = addsym smallcode smalldata noicons batch stripdebug
+
+###############################################################################
+
+# ttengine sources (same set as makefile.m68k-amigaos TTOBJS + CRHOBJS).
+# kprintf.s is GCC GAS asm and is only used when LD() debug is enabled; omitted.
+TTOBJS = \
+	lib_header.o \
+	lib.o \
+	lib_cache.o \
+	lib_blend.o \
+	lib_req.o \
+	isotables.o \
+	getnextchar.o \
+	lib_famlist.o \
+	crhook_bgra32.o
+
+# FreeType 2.1.3 amalgam objects (same as makefile.m68k-amigaos FTOBJS).
+FTOBJS = \
+	ftbase.o \
+	sfnt.o \
+	smooth.o \
+	raster.o \
+	truetype.o \
+	ftinit.o \
+	ftsystem.o \
+	ftglyph.o
+
+OBJS = $(TTOBJS) $(FTOBJS)
+
+###############################################################################
+
+all: $(NAME)
+
+$(NAME): $(OBJS)
+	Sc $(LFLAGS) NOSTARTUP LINK TO $@ $(OBJS) LIB sc:lib/scmieee.lib
+
+install: $(NAME)
+	copy $(NAME) LIBS:
+	avail flush >nil:
+
+# Build and run Source/test/TTEngineTest (needs a font via FONT= or database).
+test: $(NAME)
+	cd test && smake test
+
+clean:
+	delete $(NAME) $(NAME).debug $(NAME).map $(OBJS) all
+	cd test && smake clean
+
+###############################################################################
+
+# --- ttengine objects --------------------------------------------------------
+
+lib_header.o: lib_header.c lib.h lib_req.h lib_famlist.h
+	Sc $(CFLAGS) OBJNAME $@ lib_header.c
+
+lib.o: lib.c lib.h lib_req.h getnextchar.h
+	Sc $(CFLAGS) OBJNAME $@ lib.c
+
+lib_cache.o: lib_cache.c lib.h lib_cache.h
+	Sc $(CFLAGS) OBJNAME $@ lib_cache.c
+
+lib_blend.o: lib_blend.c lib.h lib_blend.h
+	Sc $(CFLAGS) OBJNAME $@ lib_blend.c
+
+lib_req.o: lib_req.c lib_req.h
+	Sc $(CFLAGS) OBJNAME $@ lib_req.c
+
+lib_famlist.o: lib_famlist.c lib_famlist.h
+	Sc $(CFLAGS) OBJNAME $@ lib_famlist.c
+
+isotables.o: isotables.c
+	Sc $(CFLAGS) OBJNAME $@ isotables.c
+
+getnextchar.o: getnextchar.c getnextchar.h lib.h
+	Sc $(CFLAGS) OBJNAME $@ getnextchar.c
+
+crhook_bgra32.o: crhook_bgra32.c lib.h
+	Sc $(CFLAGS) OBJNAME $@ crhook_bgra32.c
+
+ftsystem.o: ftsystem.c lib.h
+	Sc $(CFLAGS) OBJNAME $@ ftsystem.c
+
+###############################################################################
+
+# --- FreeType amalgam objects (compile inside their source dirs) ------------
+
+ftbase.o: base/ftbase.c
+	cd base && Sc $(FTCFLAGS) OBJNAME /ftbase.o ftbase.c
+
+ftinit.o: base/ftinit.c
+	cd base && Sc $(FTCFLAGS) OBJNAME /ftinit.o ftinit.c
+
+ftglyph.o: base/ftglyph.c
+	cd base && Sc $(FTCFLAGS) OBJNAME /ftglyph.o ftglyph.c
+
+sfnt.o: sfnt/sfnt.c
+	cd sfnt && Sc $(FTCFLAGS) OBJNAME /sfnt.o sfnt.c
+
+smooth.o: smooth/smooth.c
+	cd smooth && Sc $(FTCFLAGS) OBJNAME /smooth.o smooth.c
+
+raster.o: raster/raster.c
+	cd raster && Sc $(FTCFLAGS) OBJNAME /raster.o raster.c
+
+truetype.o: truetype/truetype.c
+	cd truetype && Sc $(FTCFLAGS) OBJNAME /truetype.o truetype.c
+
+###############################################################################
+
+.PHONY: all install clean
