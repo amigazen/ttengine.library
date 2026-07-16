@@ -13,7 +13,7 @@ void dirblit_bgra32(struct DirBlitData *dbd)
 {
 	LONG row, col, w, h;
 	ULONG lmod, *dstptr;
-	UBYTE *srcptr, *gamma, alpha;
+	UBYTE *srcptr, *gamma, *antigamma, alpha;
 	struct Rgb bg, fg;
 	ULONG bgdirect, fgdirect;
 	struct Library *GfxBase = dbd->ttb->ttb_GfxBase;
@@ -25,7 +25,8 @@ void dirblit_bgra32(struct DirBlitData *dbd)
 	srcptr = dbd->px->ttp_Data + dbd->srcy * dbd->px->ttp_Width;        // source pixmap pointer
 	w = dbd->bounds.MaxX - dbd->bounds.MinX + 1;	                      // rectangle width
 	h = dbd->bounds.MaxY - dbd->bounds.MinY + 1;                        // rectangle height
-	gamma = dbd->re->re_Gamma;                                          // gamma lookup table
+	gamma = dbd->re->re_Gamma;
+	antigamma = dbd->re->re_AntiGamma;
 	alpha = dbd->re->re_Transparency;
 
 //	kprintf("TTE: onscr: %ld x %ld at [%ld, %ld], dstptr = $%08lx.\n", w, h, dbd->bounds.MinX, dbd->bounds.MinY, dstptr);
@@ -56,15 +57,15 @@ void dirblit_bgra32(struct DirBlitData *dbd)
 					{
 						if (b == 0) dstptr[col + dbd->bounds.MinX] ^= bgdirect;
 						else if (b == 0xFF) dstptr[col + dbd->bounds.MinX] ^= fgdirect;
-						else dstptr[col + dbd->bounds.MinX] ^= (blend(gamma, bg.b, fg.b, b) << 24) |
-							(blend(gamma, bg.g, fg.g, b) << 16) | (blend(gamma, bg.r, fg.r, b) << 8);
+						else dstptr[col + dbd->bounds.MinX] ^= (blend(gamma, antigamma, bg.b, fg.b, b) << 24) |
+							(blend(gamma, antigamma, bg.g, fg.g, b) << 16) | (blend(gamma, antigamma, bg.r, fg.r, b) << 8);
 					}
 					else
 					{
 						if (b == 0) dstptr[col + dbd->bounds.MinX] = bgdirect;
 						else if (b == 0xFF) dstptr[col + dbd->bounds.MinX] = fgdirect;
-						else dstptr[col + dbd->bounds.MinX] = (blend(gamma, bg.b, fg.b, b) << 24) |
-							(blend(gamma, bg.g, fg.g, b) << 16) | (blend(gamma, bg.r, fg.r, b) << 8);
+						else dstptr[col + dbd->bounds.MinX] = (blend(gamma, antigamma, bg.b, fg.b, b) << 24) |
+							(blend(gamma, antigamma, bg.g, fg.g, b) << 16) | (blend(gamma, antigamma, bg.r, fg.r, b) << 8);
 					}
 				}
 				dstptr += lmod;
@@ -124,13 +125,13 @@ void dirblit_bgra32(struct DirBlitData *dbd)
 						t.r = ((u & 0x0000FF00) >> 8) + ((((WORD)fg.r - (WORD)((u & 0x0000FF00) >> 8)) * alpha) >> 8);
 
 						if (dbd->xor) dstptr[col + dbd->bounds.MinX] ^=
-							(blend(gamma, s.b, t.b, b) << 24) |
-							(blend(gamma, s.g, t.g, b) << 16) |
-							(blend(gamma, s.r, t.r, b) << 8);
+							(blend(gamma, antigamma, s.b, t.b, b) << 24) |
+							(blend(gamma, antigamma, s.g, t.g, b) << 16) |
+							(blend(gamma, antigamma, s.r, t.r, b) << 8);
 						else dstptr[col + dbd->bounds.MinX] =
-							(blend(gamma, s.b, t.b, b) << 24) |
-							(blend(gamma, s.g, t.g, b) << 16) |
-							(blend(gamma, s.r, t.r, b) << 8);
+							(blend(gamma, antigamma, s.b, t.b, b) << 24) |
+							(blend(gamma, antigamma, s.g, t.g, b) << 16) |
+							(blend(gamma, antigamma, s.r, t.r, b) << 8);
 					}
 				}
 				dstptr += lmod;
@@ -169,16 +170,16 @@ void dirblit_bgra32(struct DirBlitData *dbd)
 							if (dbd->xor)
 							{
 								dstptr[col + dbd->bounds.MinX] ^=
-									(blend(gamma, (u & 0xFF000000) >> 24, fg.b, b) << 24) |
-									(blend(gamma, (u & 0x00FF0000) >> 16, fg.g, b) << 16) |
-									(blend(gamma, (u & 0x0000FF00) >> 8, fg.r, b) << 8);
+									(blend(gamma, antigamma, (u & 0xFF000000) >> 24, fg.b, b) << 24) |
+									(blend(gamma, antigamma, (u & 0x00FF0000) >> 16, fg.g, b) << 16) |
+									(blend(gamma, antigamma, (u & 0x0000FF00) >> 8, fg.r, b) << 8);
 							}
 							else
 							{
 								dstptr[col + dbd->bounds.MinX] =
-									(blend(gamma, (u & 0xFF000000) >> 24, fg.b, b) << 24) |
-									(blend(gamma, (u & 0x00FF0000) >> 16, fg.g, b) << 16) |
-									(blend(gamma, (u & 0x0000FF00) >> 8, fg.r, b) << 8);
+									(blend(gamma, antigamma, (u & 0xFF000000) >> 24, fg.b, b) << 24) |
+									(blend(gamma, antigamma, (u & 0x00FF0000) >> 16, fg.g, b) << 16) |
+									(blend(gamma, antigamma, (u & 0x0000FF00) >> 8, fg.r, b) << 8);
 							}
 						}
 					}
@@ -224,13 +225,13 @@ void dirblit_bgra32(struct DirBlitData *dbd)
 						s.r = ((u & 0x0000FF00) >> 8) + ((((WORD)fg.r - (WORD)((u & 0x0000FF00) >> 8)) * alpha) >> 8);
 
 						if (dbd->xor) dstptr[col + dbd->bounds.MinX] ^=
-							(blend(gamma, ((u & 0xFF000000) >> 24), s.b, b) << 24) |
-							(blend(gamma, ((u & 0x00FF0000) >> 16), s.g, b) << 16) |
-							(blend(gamma, ((u & 0x0000FF00) >> 8), s.r, b) << 8);
+							(blend(gamma, antigamma, ((u & 0xFF000000) >> 24), s.b, b) << 24) |
+							(blend(gamma, antigamma, ((u & 0x00FF0000) >> 16), s.g, b) << 16) |
+							(blend(gamma, antigamma, ((u & 0x0000FF00) >> 8), s.r, b) << 8);
 						else dstptr[col + dbd->bounds.MinX] =
-							(blend(gamma, ((u & 0xFF000000) >> 24), s.b, b) << 24) |
-							(blend(gamma, ((u & 0x00FF0000) >> 16), s.g, b) << 16) |
-							(blend(gamma, ((u & 0x0000FF00) >> 8), s.r, b) << 8);
+							(blend(gamma, antigamma, ((u & 0xFF000000) >> 24), s.b, b) << 24) |
+							(blend(gamma, antigamma, ((u & 0x00FF0000) >> 16), s.g, b) << 16) |
+							(blend(gamma, antigamma, ((u & 0x0000FF00) >> 8), s.r, b) << 8);
 					}
 				}
 				dstptr += lmod;

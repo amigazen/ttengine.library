@@ -175,8 +175,8 @@ struct RenderEnv
 	BOOL                   re_BigEndian;
 	ULONG                  re_ForceFixed;
 	ULONG                  re_GammaCf;
-	UBYTE                  re_Gamma[256];       /* gamma correction lookup table */
-	UBYTE                  re_AntiGamma[256];
+	UBYTE                  re_Gamma[256];       /* linear -> display: (i/255)^(1/gamma) */
+	UBYTE                  re_AntiGamma[256];   /* display -> linear: (i/255)^gamma */
 	APTR                   re_Pixmap;
 	ULONG                  re_PixmapSize;
 	APTR                   re_RenderBuffer;
@@ -284,7 +284,7 @@ struct Rgb
 
 void get_rp_fgcolor(struct TTEngineBase *ttb, struct RenderEnv *re, struct Rgb *dest);
 void get_rp_bgcolor(struct TTEngineBase *ttb, struct RenderEnv *re, struct Rgb *dest);
-UBYTE blend(UBYTE *g, UBYTE bg, UBYTE fg, UBYTE a);
+UBYTE blend(UBYTE *g, UBYTE *ag, UBYTE bg, UBYTE fg, UBYTE a);
 
 void draw_jam1(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct RenderEnv *re, LONG x, LONG y);
 void draw_jam2(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct RenderEnv *re, LONG x, LONG y);

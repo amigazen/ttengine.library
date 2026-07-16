@@ -14,22 +14,32 @@
 
 void check_cache_size(struct TTEngineBase *ttb)
 {
-	if (ttb->ttb_MemCacheSize > ttb->ttb_MemCacheLimit)
+	struct Node *last_font;
+	struct Node *last_size;
+	struct CachedFont *cf;
+	struct CachedSize *cs;
+
+	/* Evict LRU unused sizes until under CACHELIMIT (or nothing left that
+	 * is idle). Previously only one size was considered per add. */
+	while (ttb->ttb_MemCacheSize > ttb->ttb_MemCacheLimit)
 	{
-		struct Node *last_font, *last_size;
+		last_font = (struct Node *)ttb->ttb_MemoryCache.mlh_TailPred;
+		if (last_font->ln_Succ == NULL)
+			break;
 
-		last_font = (struct Node*)ttb->ttb_MemoryCache.mlh_TailPred;
-		last_size = (struct Node*)((struct CachedFont*)last_font)->cf_Sizes.mlh_TailPred;
-        
-		if (((struct CachedSize*)last_size)->cs_Users == 0)
-		{
-			cache_flush_size(ttb, (struct CachedSize*)last_size);
+		cf = (struct CachedFont *)last_font;
+		last_size = (struct Node *)cf->cf_Sizes.mlh_TailPred;
+		if (last_size->ln_Succ == NULL)
+			break;
 
-			if (((struct CachedFont*)last_font)->cf_Sizes.mlh_Head == (struct MinNode*)&((struct CachedFont*)last_font)->cf_Sizes.mlh_Tail)
-			{
-				cache_flush_font(ttb, (struct CachedFont*)last_font);
-			}
-		}
+		cs = (struct CachedSize *)last_size;
+		if (cs->cs_Users != 0)
+			break;
+
+		cache_flush_size(ttb, cs);
+
+		if (cf->cf_Sizes.mlh_Head == (struct MinNode *)&cf->cf_Sizes.mlh_Tail)
+			cache_flush_font(ttb, cf);
 	}
 }
 

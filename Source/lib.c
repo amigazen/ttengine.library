@@ -212,14 +212,25 @@ void calculate_gamma(struct TTEngineBase *ttb, struct RenderEnv *re)
 {
 	WORD i;
 	float gcf;
+	float agcf;
 
 	ttb = ttb;
+	/* GammaCf is gamma * 1000; encode uses 1/gamma, decode uses gamma. */
 	gcf = (float)1000.0 / (float)re->re_GammaCf;
+	agcf = (float)re->re_GammaCf / (float)1000.0;
 
 	for (i = 0; i < 256; i++)
 	{
-		re->re_Gamma[i] = (UBYTE)(pow((float)i / 255, gcf) * (float)255);
+		float n;
+
+		n = (float)i / 255;
+		re->re_Gamma[i] = (UBYTE)(pow(n, gcf) * (float)255);
+		re->re_AntiGamma[i] = (UBYTE)(pow(n, agcf) * (float)255);
 	}
+	re->re_Gamma[0] = 0;
+	re->re_Gamma[255] = 255;
+	re->re_AntiGamma[0] = 0;
+	re->re_AntiGamma[255] = 255;
 }
 
 #else
@@ -231,15 +242,27 @@ void calculate_gamma(struct TTEngineBase *ttb, struct RenderEnv *re)
 
 	WORD i;
 	FLOAT gcf;
+	FLOAT agcf;
+	FLOAT n;
+	FLOAT two55;
 
 	LD(kp(""));
 
+	/* IEEESPPow(y, x) returns x^y on Amiga (exponent first). */
 	gcf = IEEESPDiv(1000, IEEESPFlt(re->re_GammaCf));
+	agcf = IEEESPDiv(IEEESPFlt(re->re_GammaCf), 1000);
+	two55 = IEEESPFlt(255);
 
 	for (i = 0; i < 256; i++)
 	{
-		re->re_Gamma[i] = IEEESPFix(IEEESPMul(IEEESPPow(gcf, IEEESPDiv(IEEESPFlt(i), 255)), 255));
+		n = IEEESPDiv(IEEESPFlt(i), two55);
+		re->re_Gamma[i] = IEEESPFix(IEEESPMul(IEEESPPow(gcf, n), two55));
+		re->re_AntiGamma[i] = IEEESPFix(IEEESPMul(IEEESPPow(agcf, n), two55));
 	}
+	re->re_Gamma[0] = 0;
+	re->re_Gamma[255] = 255;
+	re->re_AntiGamma[0] = 0;
+	re->re_AntiGamma[255] = 255;
 }
 
 #endif
@@ -378,13 +401,23 @@ struct CachedBitmap *get_glyph_bitmap(struct TTEngineBase *ttb, struct RenderEnv
 {
 	USESYSBASE;
 	struct CachedBitmap *cb;
-	FT_Face face = re->re_LoadedFont->lf_Face;
+	FT_Face face;
+	FT_Int32 load_flags;
+
+	face = re->re_LoadedFont->lf_Face;
 
 	if (!(cb = cache_find_bitmap(ttb, re->re_LoadedFont->lf_CachedSize, index, re->re_BitmapMode)))
 	{
 		ObtainSemaphore(&re->re_LoadedFont->lf_Lock);
 
-		if (!FT_Load_Glyph(face, index, FT_LOAD_TARGET_MONO))
+		/* Hint for the mode we will render: mono loads on the AA path
+		 * wasted work and produced worse gray outlines on cache miss. */
+		if (re->re_BitmapMode == ft_pixel_mode_mono)
+			load_flags = FT_LOAD_TARGET_MONO;
+		else
+			load_flags = FT_LOAD_TARGET_NORMAL;
+
+		if (!FT_Load_Glyph(face, index, load_flags))
 		{
 			if (!FT_Render_Glyph(face->glyph, re->re_RenderMode))
 			{
@@ -2627,13 +2660,11 @@ __ASM__ __SAVE_DS__ void tt_Text(__REG__(a6, struct TTEngineBase *ttb), __REG__(
 *         TT_Background_UseRastPort returns background color control back to
 *         the RastPort and its 'B' pen.
 *
-*       TT_Gamma - adjustable gamma correction used for antialiasing. After
-*         RGB alphablending gamma correction is applied to resulting pixel
-*         colour according to x' = x ^ 1/gamma, where x is a RGB component.
-*         TT_Gamma is 'gamma' exponent multiplied by 1000 to avoid messing
-*         with floating point numbers. Default TT_Gamma is 2500 (2.5) which
-*         is typical for CRT display. Default gamma exponent can be set by
-*         user in 'ttengine.database' file.
+*       TT_Gamma - adjustable gamma correction used for antialiasing. Partial
+*         coverage pixels are blended in approximate linear light (via inverse
+*         gamma), then encoded with x' = x ^ 1/gamma. TT_Gamma is 'gamma'
+*         multiplied by 1000. Default is 2500 (2.5), typical for CRT. Default
+*         can be set in 'ttengine.database'.
 *
 *       TT_DiskFontMetrics - changes TTEngine rendering to be diskfont-like.
 *         In this mode JAM2 filled area extends vertically between

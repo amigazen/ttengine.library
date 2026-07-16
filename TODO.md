@@ -17,8 +17,9 @@
 
 ## Faster / optimised rendering
 
-- [ ] Stop always using `FT_LOAD_TARGET_MONO` on the antialiased path; use an appropriate load target for AA.
-- [ ] Tighten / review bitmap cache behaviour around `CACHELIMIT`.
+- [x] Stop always using `FT_LOAD_TARGET_MONO` on the antialiased path; use an appropriate load target for AA.
+- [x] Tighten / review bitmap cache behaviour around `CACHELIMIT` (evict until under limit).
+- [x] Finish inverse-gamma path: fill `re_AntiGamma` and use decode→lerp→encode in `blend()`.
 - [ ] Avoid full ARGB `ReadPixelArray` / `WritePixelArray` round-trips where a direct path exists (lean into BGRA32 / existing direct-render callback).
 - [ ] Optional fast paths: skip gamma/blend tables for opaque JAM1 hot paths.
 

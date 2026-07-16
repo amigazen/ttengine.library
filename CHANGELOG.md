@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Added CLI `TTEngineTest` harness under `Source/test`.
 - Fixed FreeType module error enums and Amiga glue for SAS/C.
 - Fixed libcall conventions (`__ASM__` / `__SAVE_DS__` / `__REG__`) for SAS/C to use compiler-specific.h macros.
+- Fixed antialiased glyph loads to use `FT_LOAD_TARGET_NORMAL` instead of always mono.
+- Fixed cache eviction to flush unused sizes until under `CACHELIMIT`.
+- Fixed incomplete inverse-gamma path: fill `re_AntiGamma` and blend via decode→lerp→encode.
 
 ## [7.2] - 2005-12-22
 

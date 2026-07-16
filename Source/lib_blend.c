@@ -94,10 +94,18 @@ static BOOL expand_render_buffer(struct TTEngineBase *ttb, struct RenderEnv *re,
 // blend()
 //==========================================================================================================================================================
 
-UBYTE blend(UBYTE *g, UBYTE bg, UBYTE fg, UBYTE a)
+/*
+ * Gamma-correct channel blend:
+ *   linear = AntiGamma[bg]*(1-a) + AntiGamma[fg]*a
+ *   out    = Gamma[linear]
+ * Callers already short-circuit a==0 and a==0xFF before calling.
+ */
+UBYTE blend(UBYTE *g, UBYTE *ag, UBYTE bg, UBYTE fg, UBYTE a)
 {
-	if (bg < fg) return (bg + (((fg - bg) * g[a]) >> 8));
-	else return (fg + (((bg - fg) * g[255-a]) >> 8));
+	ULONG lin;
+
+	lin = ((ULONG)ag[bg] * (255 - a) + (ULONG)ag[fg] * (ULONG)a) >> 8;
+	return g[(UBYTE)lin];
 }
 
 //==========================================================================================================================================================
@@ -158,9 +166,9 @@ void blend_jam1(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct RenderEnv
 			}
 			else
 			{
-				*dst++ = blend(g, *dst, fg.r, pix);
-				*dst++ = blend(g, *dst, fg.g, pix);
-				*dst++ = blend(g, *dst, fg.b, pix);
+				*dst++ = blend(g, ag, *dst, fg.r, pix);
+				*dst++ = blend(g, ag, *dst, fg.g, pix);
+				*dst++ = blend(g, ag, *dst, fg.b, pix);
 			}
 		}
 	}
@@ -227,9 +235,9 @@ VOID blend_jam2(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct RenderEnv
               }
             else
               {
-                *dst++ = blend (g, bg.r, fg.r, pix);
-                *dst++ = blend (g, bg.g, fg.g, pix);
-                *dst++ = blend (g, bg.b, fg.b, pix);
+                *dst++ = blend (g, ag, bg.r, fg.r, pix);
+                *dst++ = blend (g, ag, bg.g, fg.g, pix);
+                *dst++ = blend (g, ag, bg.b, fg.b, pix);
               }
           }
       }
@@ -255,10 +263,12 @@ VOID blend_jam1_xor(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct Rende
     struct RastPort *rp = re->re_TargetRPort;
     UBYTE g1[256];
 
+    /* COMPLEMENT/XOR: keep linear identity tables; gamma encode/decode
+     * of XOR'd display pixels is nonsensical. */
     for (ix = 0; ix < 256; ix++) g1[ix] = ix;
 
-    g = g1; /*re->re_Gamma;*/
-    ag = g1; /*re->re_AntiGamma; */
+    g = g1;
+    ag = g1;
 
     /* get RastPort foreground color */
 
@@ -298,9 +308,9 @@ VOID blend_jam1_xor(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct Rende
               }
             else
               {
-                *dst++ ^= blend (g, 0, fg.r, pix);
-                *dst++ ^= blend (g, 0, fg.g, pix);
-                *dst++ ^= blend (g, 0, fg.b, pix);
+                *dst++ ^= blend (g, ag, 0, fg.r, pix);
+                *dst++ ^= blend (g, ag, 0, fg.g, pix);
+                *dst++ ^= blend (g, ag, 0, fg.b, pix);
               }
           }
       }
@@ -372,9 +382,9 @@ VOID blend_jam2_xor(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct Rende
               }
             else
               {
-                *dst++ ^= blend (g, bg.r, fg.r, pix);
-                *dst++ ^= blend (g, bg.g, fg.g, pix);
-                *dst++ ^= blend (g, bg.b, fg.b, pix);
+                *dst++ ^= blend (g, ag, bg.r, fg.r, pix);
+                *dst++ ^= blend (g, ag, bg.g, fg.g, pix);
+                *dst++ ^= blend (g, ag, bg.b, fg.b, pix);
               }
           }
       }
@@ -532,9 +542,9 @@ VOID transp_jam1(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct RenderEn
                 f.r = dst[0] + ((((WORD)fg.r - (WORD)dst[0]) * alpha) >> 8);
                 f.g = dst[1] + ((((WORD)fg.g - (WORD)dst[1]) * alpha) >> 8);
                 f.b = dst[2] + ((((WORD)fg.b - (WORD)dst[2]) * alpha) >> 8);
-                *dst++ = blend (g, *dst, f.r, pix);
-                *dst++ = blend (g, *dst, f.g, pix);
-                *dst++ = blend (g, *dst, f.b, pix);
+                *dst++ = blend (g, ag, *dst, f.r, pix);
+                *dst++ = blend (g, ag, *dst, f.g, pix);
+                *dst++ = blend (g, ag, *dst, f.b, pix);
               }
           }
       }
@@ -616,9 +626,9 @@ VOID transp_jam2(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct RenderEn
                 fg2.g = dst[1] + ((((WORD)fg.g - (WORD)dst[1]) * alpha) >> 8);
                 fg2.b = dst[2] + ((((WORD)fg.b - (WORD)dst[2]) * alpha) >> 8);
 
-                *dst++ = blend (g, bg2.r, fg2.r, pix);
-                *dst++ = blend (g, bg2.g, fg2.g, pix);
-                *dst++ = blend (g, bg2.b, fg2.b, pix);
+                *dst++ = blend (g, ag, bg2.r, fg2.r, pix);
+                *dst++ = blend (g, ag, bg2.g, fg2.g, pix);
+                *dst++ = blend (g, ag, bg2.b, fg2.b, pix);
               }
           }
       }
@@ -688,9 +698,9 @@ VOID transp_jam1_xor(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct Rend
                 f.r = ((WORD)fg.r * alpha) >> 8;
                 f.g = ((WORD)fg.g * alpha) >> 8;
                 f.b = ((WORD)fg.b * alpha) >> 8;
-                *dst++ ^= blend (g, 0, f.r, pix);
-                *dst++ ^= blend (g, 0, f.g, pix);
-                *dst++ ^= blend (g, 0, f.b, pix);
+                *dst++ ^= blend (g, ag, 0, f.r, pix);
+                *dst++ ^= blend (g, ag, 0, f.g, pix);
+                *dst++ ^= blend (g, ag, 0, f.b, pix);
               }
           }
       }
@@ -772,9 +782,9 @@ VOID transp_jam2_xor(struct TTEngineBase *ttb, struct TT_Pixmap *px, struct Rend
                 fg2.g = ((WORD)fg.g * alpha) >> 8;
                 fg2.b = ((WORD)fg.b * alpha) >> 8;
 
-                *dst++ ^= blend (g, bg2.r, fg2.r, pix);
-                *dst++ ^= blend (g, bg2.g, fg2.g, pix);
-                *dst++ ^= blend (g, bg2.b, fg2.b, pix);
+                *dst++ ^= blend (g, ag, bg2.r, fg2.r, pix);
+                *dst++ ^= blend (g, ag, bg2.g, fg2.g, pix);
+                *dst++ ^= blend (g, ag, bg2.b, fg2.b, pix);
               }
           }
       }
